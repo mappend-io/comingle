@@ -1,0 +1,13 @@
+[workspace]
+resolver = "3"
+members = ["comingle", "resource_io"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+authors = ["Richard Moreland <richard@mappend.com>"]
+license = "MIT"
+
+[workspace.dependencies]
+comingled = { path = "comingle" }
+resource_io = { path = "resource_io" }

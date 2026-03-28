@@ -1,0 +1,53 @@
+use crate::tiles3d;
+
+pub fn cell_id_from_face_level_col_row(
+    face: u8,
+    level: i32,
+    col: i32,
+    row: i32,
+) -> s2::cellid::CellID {
+    let i = (col as u64) << (30 - level);
+    let j = (row as u64) << (30 - level);
+    let leaf_id = s2::cellid::CellID::from_face_ij(face, i as i32, j as i32);
+    leaf_id.parent(level as u64)
+}
+
+pub fn face_level_col_row_from_cell_id(cell_id: s2::cellid::CellID) -> (u8, i32, i32, i32) {
+    let face = cell_id.face();
+    let level = cell_id.level();
+
+    let (_, i, j, _orientation) = cell_id.face_ij_orientation();
+    let col = (i as u64) >> (30 - level);
+    let row = (j as u64) >> (30 - level);
+
+    (face, level as i32, col as i32, row as i32)
+}
+
+pub fn s2_rect_to_region(
+    rect: &s2::rect::Rect,
+    min_height: f64,
+    max_height: f64,
+) -> tiles3d::BoundingVolume {
+    tiles3d::BoundingVolume::from_lat_lng_elev_degrees(
+        rect.lo().lng.deg(),
+        rect.lo().lat.deg(),
+        rect.hi().lng.deg(),
+        rect.hi().lat.deg(),
+        min_height,
+        max_height,
+    )
+}
+
+pub fn s2_token_to_s2_rect(token: &str) -> s2::rect::Rect {
+    let cell_id = s2::cellid::CellID::from_token(token);
+    let cell = s2::cell::Cell::from(cell_id);
+    cell.rect_bound()
+}
+
+pub fn s2_tokens_to_s2_rect(tokens: &Vec<String>) -> s2::rect::Rect {
+    let mut rect = s2::rect::Rect::empty();
+    for token in tokens {
+        rect = rect.union(&s2_token_to_s2_rect(token));
+    }
+    rect
+}

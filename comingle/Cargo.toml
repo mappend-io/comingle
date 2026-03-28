@@ -1,0 +1,29 @@
+[package]
+name = "comingle"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+
+[dependencies]
+anyhow = "1.0.102"
+async-recursion = "1.1.1"
+async-trait = "0.1.89"
+axum = { version = "0.8.8", features = ["default", "macros"] }
+blake3 = "1.8.4"
+bytes = "1.11.1"
+clap = { version = "4.6.0", features = ["derive", "env"] }
+dotenvy = "0.15.7"
+humantime = "2.3.0"
+iref = "4.0.0"
+iri-string = "0.7.12"
+moka = { version = "0.12.15", features = ["future"] }
+regex = "1.12.3"
+resource_io = { workspace = true }
+s2 = "0.0.13"
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.149"
+thiserror = "2.0.18"
+tokio = { version = "1.50.0", features = ["full"] }
+tower-http = { version = "0.6.8", features = ["cors"] }
+tracing = "0.1.44"
+tracing-subscriber = { version = "0.3.23", features = ["env-filter", "json"] }

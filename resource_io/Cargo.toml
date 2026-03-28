@@ -1,0 +1,21 @@
+[package]
+name = "resource_io"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+
+[dependencies]
+async-trait = "0.1.89"
+aws-config = "1.8.15"
+aws-sdk-s3 = "1.128.0"
+bytes = "1.11.1"
+flate2 = "1.1.9"
+iref = "4.0.0"
+iri-string = "0.7.12"
+md5 = "0.8.0"
+quick_cache = "0.6.21"
+regex = "1.12.3"
+thiserror = "2.0.18"
+tokio = { version = "1.50.0", features = ["rt"] }
+tracing = "0.1.44"
+zstd = "0.13.3"
