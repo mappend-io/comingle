@@ -11,3 +11,6 @@ license = "MIT"
 [workspace.dependencies]
 comingled = { path = "comingle" }
 resource_io = { path = "resource_io" }
+
+[profile.release]
+strip = true
