@@ -85,7 +85,16 @@ async fn main() -> Result<()> {
     info!("🚀 Listening on {}", app_state.config.listen_addr);
 
     let listener = TcpListener::bind(config.listen_addr).await?;
-    let _ = axum::serve(listener, app).await;
+    let _ = axum::serve(listener, app)
+        .with_graceful_shutdown(shutdown_signal())
+        .await;
 
     Ok(())
+}
+
+async fn shutdown_signal() {
+    tokio::signal::ctrl_c()
+        .await
+        .expect("failed to listen for ctrl-c");
+    tracing::info!("Shutting down...");
 }
