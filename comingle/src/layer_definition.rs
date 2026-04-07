@@ -25,6 +25,8 @@ pub struct LayerDefinition {
     pub tileset_extensions_required: Vec<String>,
     pub tileset_metadata: Option<tiles3d::Metadata>,
     pub tileset_schema: Option<tiles3d::Schema>,
+    // Arbitrary value, helps cache-busting if the underlying content changes
+    pub version: i32,
 }
 
 impl LayerDefinition {

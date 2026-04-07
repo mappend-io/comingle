@@ -1,7 +1,9 @@
 use crate::app_state::AppState;
 use crate::config::Config;
 use crate::handlers::*;
+use crate::middleware::*;
 use anyhow::{Context, Result};
+use axum::middleware::from_fn;
 use axum::{Router, http::HeaderValue, routing::get};
 use moka::future::Cache;
 use resource_io::ResourceLoader;
@@ -15,6 +17,7 @@ pub mod config;
 pub mod handlers;
 pub mod layer_definition;
 pub mod logging;
+pub mod middleware;
 pub mod s2_utils;
 pub mod tiles3d;
 pub mod utils;
@@ -42,9 +45,11 @@ async fn main() -> Result<()> {
         layer_definition_cache: Arc::new(layer_definition_cache),
     };
 
-    // TODO: Add cache control headers: short TTL for the root /{id} route, long for everything else
     let app = Router::new()
+        // These routes expire quickly, in case the config is updated
         .route("/{id}", get(get_root_tileset))
+        .route_layer(from_fn(cache_short))
+        // These routes are immutable, we depend on the id/hash of config to bust cache
         .route("/{id}/{hash}/tileset", get(get_root_tileset_top_node))
         .route(
             "/{id}/{hash}/tileset/{face}/{level}/{col}/{row}",
@@ -58,6 +63,7 @@ async fn main() -> Result<()> {
             "/{id}/{hash}/content/{token}/{*rest}",
             get(get_content_payload),
         )
+        .route_layer(from_fn(cache_forever))
         .with_state(app_state.clone());
 
     let app = match config.cors_origin.as_deref() {
