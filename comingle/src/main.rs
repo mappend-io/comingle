@@ -21,6 +21,7 @@ pub mod middleware;
 pub mod s2_utils;
 pub mod tiles3d;
 pub mod utils;
+pub mod viewer;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -64,6 +65,7 @@ async fn main() -> Result<()> {
             get(get_content_payload),
         )
         .route_layer(from_fn(cache_forever))
+        .fallback(viewer::static_handler)
         .with_state(app_state.clone());
 
     let app = match config.cors_origin.as_deref() {

@@ -16,9 +16,11 @@ dotenvy = "0.15.7"
 humantime = "2.3.0"
 iref = "4.0.0"
 iri-string = "0.7.12"
+mime_guess = "2.0.5"
 moka = { version = "0.12.15", features = ["future"] }
 regex = "1.12.3"
 resource_io = { workspace = true }
+rust-embed = "8.11.0"
 s2 = "0.0.13"
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.149"
