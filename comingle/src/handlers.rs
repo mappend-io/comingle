@@ -140,3 +140,37 @@ pub async fn get_content_payload(
 
     Ok(bytes)
 }
+
+#[derive(Deserialize)]
+pub struct GetBaseGlobeTerrainPayloadPaths {
+    pub id: String,
+    pub rest: String,
+}
+
+pub async fn get_base_globe_terrain_payload(
+    State(app_state): State<AppState>,
+    Path(paths): Path<GetBaseGlobeTerrainPayloadPaths>,
+) -> Result<axum::body::Bytes, StatusCode> {
+    let layer_def = app_state
+        .get_layer_definition(&paths.id)
+        .await
+        .map_err(|_| StatusCode::NOT_FOUND)?;
+
+    if layer_def.base_globe_terrain_uri.is_none() {
+        return Err(StatusCode::NOT_FOUND);
+    }
+
+    let glb_uri = format!(
+        "{}/{}",
+        layer_def.base_globe_terrain_uri.as_ref().unwrap(),
+        paths.rest
+    );
+    let uri = UriAbsoluteStr::new(&glb_uri).map_err(|_| StatusCode::BAD_REQUEST)?;
+    let bytes = app_state
+        .resource_loader
+        .read_async(uri)
+        .await
+        .map_err(|_| StatusCode::NOT_FOUND)?; // TODO: distinguish 404 vs 500
+
+    Ok(bytes)
+}

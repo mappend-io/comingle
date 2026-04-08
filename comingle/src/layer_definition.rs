@@ -27,9 +27,16 @@ pub struct LayerDefinition {
     pub tileset_schema: Option<tiles3d::Schema>,
     // Arbitrary value, helps cache-busting if the underlying content changes
     pub version: i32,
+    #[serde(default)]
+    pub base_globe_terrain_uri: Option<String>,
 }
 
 impl LayerDefinition {
+    pub fn geometric_error_for_level(&self, level: i32) -> f64 {
+        let scale = 1.0;
+        (self.root_geometric_error / 2f64.powi(level.max(0))) * scale
+    }
+
     pub fn resolve_content_uri_template(&self, content_root_token: &str) -> String {
         self.source_uri_content_template
             .replace("{CONTENT_ROOT_TOKEN}", content_root_token)
@@ -59,10 +66,10 @@ impl LayerDefinition {
 
         tiles3d::Tileset {
             asset: Asset::default(),
-            geometric_error: self.root_geometric_error,
+            geometric_error: self.geometric_error_for_level(0) * 128.0,
             root: tiles3d::Tile {
                 bounding_volume: bounding_volume.clone(),
-                geometric_error: self.root_geometric_error,
+                geometric_error: self.geometric_error_for_level(0) * 128.0,
                 children: vec![],
                 content: Some(Content {
                     bounding_volume: None,
@@ -98,7 +105,7 @@ impl LayerDefinition {
 
             let child = tiles3d::Tile {
                 bounding_volume: bounding_volume.clone(),
-                geometric_error: self.root_geometric_error,
+                geometric_error: self.geometric_error_for_level(0) * 64.0,
                 children: vec![],
                 content: Some(tiles3d::Content {
                     uri: format!("tileset/{}/{}/{}/{}", face, 0, 0, 0),
@@ -115,10 +122,10 @@ impl LayerDefinition {
             extensions_required: self.tileset_extensions_required.clone(),
             extensions_used: self.tileset_extensions_used.clone(),
             root_property: RootProperty::default(),
-            geometric_error: self.root_geometric_error,
+            geometric_error: self.geometric_error_for_level(0) * 128.0,
             root: Tile {
                 bounding_volume: self.root_tileset().root.bounding_volume,
-                geometric_error: self.root_geometric_error,
+                geometric_error: self.geometric_error_for_level(0) * 128.0,
                 children,
                 content: None,
                 root_property: RootProperty::default(),
@@ -138,6 +145,14 @@ impl LayerDefinition {
         let mut children = vec![];
         let mut content = None;
         if level < self.source_s2_content_level {
+            if self.base_globe_terrain_uri.is_some() {
+                content = Some(tiles3d::Content {
+                    uri: format!("../../../../bg_content/{face}/{level}/{col}/{row}.glb",),
+                    bounding_volume: None,
+                    root_property: RootProperty::default(),
+                });
+            }
+
             for child_id in cell_id.children() {
                 // Skip it if there's no content coverage
                 if !content_union.intersects_cellid(&child_id) {
@@ -158,7 +173,7 @@ impl LayerDefinition {
                         uri: format!("../../{child_level}/{child_col}/{child_row}"),
                         root_property: RootProperty::default(),
                     }),
-                    geometric_error: self.root_geometric_error / (1 << (level + 1)) as f64,
+                    geometric_error: self.geometric_error_for_level(child_level),
                     root_property: RootProperty::default(),
                 };
                 children.push(child);
@@ -175,7 +190,7 @@ impl LayerDefinition {
             bounding_volume,
             children,
             content,
-            geometric_error: self.root_geometric_error / (1 << level) as f64,
+            geometric_error: self.geometric_error_for_level(level),
             root_property: RootProperty::default(),
         };
 

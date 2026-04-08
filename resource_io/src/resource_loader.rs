@@ -30,8 +30,8 @@ impl Default for ResourceLoaderConfig {
     fn default() -> Self {
         Self {
             max_readers: 8 * 1_024,
-            archive_index_cache_bytes: 64 * 1_024 * 1_024, // 64MiB
-            block_cache_bytes: 2 * 1_204 * 1_024 * 1_024,  // 2GiB
+            archive_index_cache_bytes: 1_024 * 1_024 * 1_024, // 1GiB
+            block_cache_bytes: 2 * 1_204 * 1_024 * 1_024,     // 2GiB
         }
     }
 }

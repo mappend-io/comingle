@@ -69,6 +69,10 @@ async fn main() -> Result<()> {
             "/{id}/{hash}/content/{token}/{*rest}",
             get(get_content_payload),
         )
+        .route(
+            "/{id}/{hash}/bg_content/{*rest}",
+            get(get_base_globe_terrain_payload),
+        )
         .route_layer(from_fn(cache_forever))
         .fallback(viewer::static_handler)
         .with_state(app_state.clone());

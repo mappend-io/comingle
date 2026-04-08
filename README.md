@@ -84,6 +84,14 @@ URL to load one or more layers:
 http://localhost:3200/?layers=my-layer,my-other-layer
 ```
 
+NOTE: When a base globe is supplied in a layer configuration to supply backfill,
+add a query parameter to the viewer URL `noglobe` to prevent the default imagery
+from interfering.
+
+```text
+http://localhost:3200/?layers=my-layer,my-other-layer&noglobe
+```
+
 ## Use with CesiumJS, Cesium Native and other 3D Tiles tooling
 
 Comingle exposes standard 3D Tiles 1.1 tilesets over HTTP. To use with CesiumJS,
@@ -116,6 +124,8 @@ locate source content. To accomplish this, several key elements are necessary:
   covered by source data. This *could* be each populated S2 L7, but it is better
   to provide a normalized cell union to roll up larger areas with fewer tokens.
   Use `["1", "3", "5", "7", "9", "b"]` to represent the entire globe.
+- `baseGlobeTerrainUri`: Optional, only use for terrain layers. This provides
+  backfill for lower S2 levels for navigation.
 - `rootGeometricError`: Comingle does not touch source data until a viewer
   requests it. This hint helps populate the virtual tileset ancestors above the
   content.
@@ -132,6 +142,7 @@ A sample layer definition:
     "sourceUriContentTemplate": "s3://bucket/prefix/{CONTENT_ROOT_TOKEN}/terrain.3tz",
     "sourceS2ContentLevel": 7,
     "sourceS2ContentCoverageTokens": ["1", "3", "5", "7", "9", "b"],
+    "baseGlobeTerrainUri": "s3://bucket/prefix/base_globe/terrain.3tz",
     "rootGeometricError": 4096,
     "tilesetRootProperty": {},
     "tilesetExtensionsUsed": [],
