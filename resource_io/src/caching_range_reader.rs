@@ -2,6 +2,7 @@ use super::range_reader::RangeReader;
 use super::{BytesWeighter, Error};
 use async_trait::async_trait;
 use bytes::{Bytes, BytesMut};
+use futures::future::try_join_all;
 use quick_cache::sync::Cache;
 use std::sync::Arc;
 
@@ -91,8 +92,14 @@ impl RangeReader for CachingRangeReader {
         let mut current_offset = offset;
         let mut remaining_length = length;
 
-        for block_idx in start_block..=end_block {
-            let block = self.fetch_block_async(block_idx).await?;
+        let fetch_futures =
+            (start_block..=end_block).map(|block_idx| self.fetch_block_async(block_idx));
+
+        // Fetch all blocks concurrently
+        let blocks = try_join_all(fetch_futures).await?;
+
+        // The blocks are sequentially ordered, smash them into the result
+        for block in blocks {
             let block_offset = (current_offset % self.block_size) as usize;
 
             let available_bytes = block.len().saturating_sub(block_offset);
