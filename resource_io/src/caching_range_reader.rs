@@ -1,5 +1,5 @@
-use super::Error;
 use super::range_reader::RangeReader;
+use super::{BytesWeighter, Error};
 use async_trait::async_trait;
 use bytes::{Bytes, BytesMut};
 use quick_cache::sync::Cache;
@@ -8,8 +8,8 @@ use std::sync::Arc;
 pub struct CachingRangeReader {
     reader: Arc<dyn RangeReader>,
     block_size: u64,
-    cache_namespace: [u8; 16],                 // md5 of path
-    cache: Arc<Cache<([u8; 16], u64), Bytes>>, // shared cache
+    cache_namespace: [u8; 16],                                // md5 of path
+    cache: Arc<Cache<([u8; 16], u64), Bytes, BytesWeighter>>, // shared cache
 }
 
 impl CachingRangeReader {
@@ -17,7 +17,7 @@ impl CachingRangeReader {
         reader: Arc<dyn RangeReader>,
         block_size: u64,
         cache_namespace: [u8; 16],
-        cache: Arc<Cache<([u8; 16], u64), Bytes>>,
+        cache: Arc<Cache<([u8; 16], u64), Bytes, BytesWeighter>>,
     ) -> Self {
         CachingRangeReader {
             reader,

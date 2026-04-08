@@ -1,3 +1,4 @@
+use bytesize::ByteSize;
 use clap::Parser;
 use humantime::parse_duration;
 
@@ -28,6 +29,10 @@ pub struct Config {
     // How long should layer definitions stay in the cache?
     #[arg(long, env = "LAYER_DEFINITION_TTL", default_value = "5m", value_parser = parse_duration)]
     pub layer_definition_ttl: std::time::Duration,
+
+    // Bound resource loader block cache
+    #[arg(long, env, default_value = "2GiB")]
+    pub block_cache_size: ByteSize,
 }
 
 impl Config {

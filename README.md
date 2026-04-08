@@ -31,6 +31,8 @@ Options:
           Location of layer configuration JSON documents [env: LAYER_CONFIG_URI=]
       --layer-definition-ttl <LAYER_DEFINITION_TTL>
           [env: LAYER_DEFINITION_TTL=] [default: 5m]
+      --block-cache-size <BLOCK_CACHE_SIZE>
+          [env: BLOCK_CACHE_SIZE=] [default: 2GiB]
   -h, --help
           Print help
 ```

@@ -2,6 +2,7 @@ use super::archive_index::ArchiveIndex;
 use super::error::Error;
 use super::file_range_reader::FileRangeReader;
 use super::range_reader::RangeReader;
+use super::{ArchiveIndexWeighter, BytesWeighter};
 use crate::s3_range_reader::S3RangeReader;
 use bytes::Bytes;
 use iri_string::types::UriAbsoluteStr;
@@ -13,24 +14,45 @@ use std::sync::LazyLock;
 #[derive(Clone)]
 pub struct ResourceLoader {
     readers: Arc<Cache<String, Arc<dyn RangeReader>>>,
-    // TODO: Use a weighter for this, so we can set a more meaningful capacity
-    archive_index_cache: Arc<Cache<String, Arc<ArchiveIndex>>>,
-    // TODO: Use a weighter for this, so we can bound memory usage
-    block_cache: Arc<Cache<([u8; 16], u64), Bytes>>, // shared across all block readers to help bound memory
+    archive_index_cache: Arc<Cache<String, Arc<ArchiveIndex>, ArchiveIndexWeighter>>,
+    block_cache: Arc<Cache<([u8; 16], u64), Bytes, BytesWeighter>>, // shared across all block readers to help bound memory
     s3_client: aws_sdk_s3::Client,
 }
 
+#[derive(Clone, Debug)]
+pub struct ResourceLoaderConfig {
+    pub max_readers: u64,
+    pub archive_index_cache_bytes: u64,
+    pub block_cache_bytes: u64,
+}
+
+impl Default for ResourceLoaderConfig {
+    fn default() -> Self {
+        Self {
+            max_readers: 8 * 1_024,
+            archive_index_cache_bytes: 64 * 1_024 * 1_024, // 64MiB
+            block_cache_bytes: 2 * 1_204 * 1_024 * 1_024,  // 2GiB
+        }
+    }
+}
+
 impl ResourceLoader {
-    pub async fn new() -> Self {
-        // TODO: Pass in configuration for sizes
+    pub async fn new(config: ResourceLoaderConfig) -> Self {
+        let archive_index_cache = Cache::with_weighter(
+            8_192,
+            config.archive_index_cache_bytes,
+            ArchiveIndexWeighter,
+        );
+
+        let block_cache = Cache::with_weighter(32_768, config.block_cache_bytes, BytesWeighter);
 
         let s3_config = aws_config::load_defaults(aws_config::BehaviorVersion::latest()).await;
         let s3_client = aws_sdk_s3::Client::new(&s3_config);
 
         Self {
-            readers: Arc::new(Cache::new(8 * 1_024)),
-            archive_index_cache: Arc::new(Cache::new(8 * 1_024)),
-            block_cache: Arc::new(Cache::new(16 * 1_024)),
+            readers: Arc::new(Cache::new(config.max_readers as usize)),
+            archive_index_cache: Arc::new(archive_index_cache),
+            block_cache: Arc::new(block_cache),
             s3_client,
         }
     }

@@ -6,7 +6,7 @@ use anyhow::{Context, Result};
 use axum::middleware::from_fn;
 use axum::{Router, http::HeaderValue, routing::get};
 use moka::future::Cache;
-use resource_io::ResourceLoader;
+use resource_io::{ResourceLoader, ResourceLoaderConfig};
 use std::sync::Arc;
 use tokio::net::TcpListener;
 use tower_http::cors::{Any, CorsLayer};
@@ -40,9 +40,14 @@ async fn main() -> Result<()> {
         .max_capacity(1_024) // TODO: from config
         .build();
 
+    let resource_loader_config = ResourceLoaderConfig {
+        block_cache_bytes: config.block_cache_size.as_u64(),
+        ..Default::default()
+    };
+
     let app_state = AppState {
         config: config.clone(),
-        resource_loader: ResourceLoader::new().await,
+        resource_loader: ResourceLoader::new(resource_loader_config).await,
         layer_definition_cache: Arc::new(layer_definition_cache),
     };
 
