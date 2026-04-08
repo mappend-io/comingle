@@ -43,6 +43,8 @@ impl LayerDefinition {
     }
 
     pub fn hash(&self) -> String {
+        // TODO: This is fragile if metadata fields are populated using any hashmap values.
+        // Revisit this: canonicalize it somehow before hashing.
         let json = serde_json::to_vec(self).expect("Serialization for hash failed");
         blake3::hash(&json).to_hex()[..16].to_string()
     }
