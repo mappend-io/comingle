@@ -4,7 +4,7 @@ use crate::{
     tiles3d::{Asset, Content, RootProperty, Tile},
 };
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 // TODO:
 // - Need to buffer the rects from tokens for synthesized tiles so the BVs are coherent
@@ -84,8 +84,8 @@ impl LayerDefinition {
         }
     }
 
-    pub fn content_coverage_tokens_by_s2_face(&self) -> HashMap<u8, Vec<String>> {
-        let mut tokens = HashMap::new();
+    pub fn content_coverage_tokens_by_s2_face(&self) -> BTreeMap<u8, Vec<String>> {
+        let mut tokens = BTreeMap::new();
         for token in &self.source_s2_content_coverage_tokens {
             let cell_id = s2::cellid::CellID::from_token(token);
             tokens
