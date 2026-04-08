@@ -3,4 +3,4 @@
 .github/
 .gitignore
 target/
-node_module
+node_modules/
