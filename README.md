@@ -1,6 +1,21 @@
-# Usage
+# Comingle
 
-```
+Comingle is a 3D Tiles 1.1 tile server that exposes virtual tilesets backed by
+S3 or local filesystem content, organized via S2 cell tokens. The source
+tilesets may be stored in 3TZ archives. Comingle serves tilesets over HTTP for
+use with CesiumJS, Cesium for Unreal, Cesium for Unity, and other 3D Tiles
+consumers, and includes a bundled CesiumJS viewer for quick inspection.
+
+## Quick start
+
+- Create [layer definitions](#Layer-definitions), one per file, at `/path/to/layers`
+- Run `comingle --layer-config-uri file:///path/to/layers/`
+- Open `http://localhost:3200/?layers=my-layer,my-other-layer` to use the [bundled viewer](#Bundled-viewer)
+- OR point CesiumJS, Cesium Native or other 3D Tiles consumers to `http://localhost:3200/my-layer`
+
+## Command line reference
+
+```text
 Usage: comingle [OPTIONS] --layer-config-uri <LAYER_CONFIG_URI>
 
 Options:
@@ -20,7 +35,127 @@ Options:
           Print help
 ```
 
-# Configuration
+## URI notes
+
+Both filesystem and S3 paths are supported, but in all cases full URIs must be
+supplied. Raw filesystem paths are never allowed to be passed to
+`--layer-config-uri` or in `sourceUriContentTemplate`.
+
+Valid URIs:
+
+- `file:///path/to/layers/` (note trailing slash indicates this is a directory)
+- `s3://bucket/my-prefix/layers/` (note trailing slash)
+
+Invalid URIs:
+
+- `/path/to/layers/`
+- `/path/to/layers` (technically valid, but won't do what is expected, add
+  trailing `/`)
+
+## Configuration
 
 The options named in the usage section above may be specified on the command
-line, the environment or a .env file.
+line, the environment or a `.env` file from the current working directory.
+
+The syntax for a `.env` file consists of key-value pairs. For example:
+
+```text
+LISTEN_ADDR=0.0.0.0:3200
+LAYER_CONFIG_URI=file:///path/to/layers/
+# Or, if using S3:
+#LAYER_CONFIG_URI=s3://my-bucket/prefix/layers/
+```
+
+Note that while options may be provided several ways, the precedence is
+(highest-first):
+
+- Explicit command line options
+- Environment variables
+- `.env` variables
+
+## Bundled viewer
+
+Comingle includes a bundled CesiumJS environment. Pass query parameters in the
+URL to load one or more layers:
+
+```text
+http://localhost:3200/?layers=my-layer,my-other-layer
+```
+
+## Use with CesiumJS, Cesium Native and other 3D Tiles tooling
+
+Comingle exposes standard 3D Tiles 1.1 tilesets over HTTP. To use with CesiumJS,
+for example:
+
+```js
+async function loadLayer(id) {
+  const tileset = await Cesium3DTileset.fromUrl(`http://localhost:3200/${id}`);
+  viewer.scene.primitives.add(tileset);
+  return tileset;
+}
+```
+
+## Layer definitions
+
+Layer definitions must use identifier-friendly names (i.e. only alphanumeric,
+`-` and `_` symbols are allowed). Place layer definitions in a directory (or S3
+bucket), one definition per file.
+
+The layer definition describes how the virtual layer exposed by Comingle should
+locate source content. To accomplish this, several key elements are necessary:
+
+- `sourceUriContentTemplate`: An `s3:` or `file:` URI pointing to backing source
+  data. This is a templated string, the `{CONTENT_ROOT_TOKEN}` is replaced by
+  the S2 token at the `sourceS2ContentLevel`.
+  - See [URI notes](#URI-notes) for more details
+- `sourceS2ContentLevel`: All tiled source data must exist at this uniform S2
+  level
+- `sourceS2ContentCoverageTokens`: An array of S2 tokens describing the area
+  covered by source data. This *could* be each populated S2 L7, but it is better
+  to provide a normalized cell union to roll up larger areas with fewer tokens.
+  Use `["1", "3", "5", "7", "9", "b"]` to represent the entire globe.
+- `rootGeometricError`: Comingle does not touch source data until a viewer
+  requests it. This hint helps populate the virtual tileset ancestors above the
+  content.
+- `tilesetExtensionsRequired`: Set to `["MAXAR_content_geojson"]` if exposing a
+  vector dataset, otherwise leave it as an empty array
+
+The remaining fields can be set as described in the sample below and are
+reserved for future use.
+
+A sample layer definition:
+
+```json
+{
+    "sourceUriContentTemplate": "s3://bucket/prefix/{CONTENT_ROOT_TOKEN}/terrain.3tz",
+    "sourceS2ContentLevel": 7,
+    "sourceS2ContentCoverageTokens": ["1", "3", "5", "7", "9", "b"],
+    "rootGeometricError": 4096,
+    "tilesetRootProperty": {},
+    "tilesetExtensionsUsed": [],
+    "tilesetExtensionsRequired": [],
+    "tilesetMetadata": {},
+    "tilesetSchema": {},
+    "version": 0
+}
+```
+
+A directory containing several layers. The layer identifier is derived from the
+filename without the `.json` suffix.
+
+```text
+$ ls /layers
+my-layer.json
+my-other-layer.json
+```
+
+## Changing layer definitions
+
+Layer definitions are loaded on-demand. They are cached in memory by Comingle
+for `--layer-definition-ttl` (5m by default). Changing an existing layer
+definition means the change will not necessarily get picked up right away if it
+has recently be used. This helps reduce the load on the config storage layer and
+improve response times.
+
+If a layer has never been accessed, or is a new layer entirely, it will be
+picked up right away.
