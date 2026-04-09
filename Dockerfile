@@ -6,6 +6,7 @@ RUN apt-get update && apt-get install -y musl-tools curl ca-certificates \
  && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY . .
+RUN npm install --prefix comingle/viewer
 RUN cargo build --release --target x86_64-unknown-linux-musl -p comingle
 
 FROM scratch
