@@ -136,3 +136,17 @@ async fn find_tile_at_level(
 
     Ok(None)
 }
+
+pub fn sniff_content_type(bytes: &[u8]) -> &'static str {
+    if bytes.starts_with(b"glTF") {
+        return "model/gltf-binary";
+    }
+    let trimmed = bytes
+        .iter()
+        .position(|b| !b.is_ascii_whitespace())
+        .unwrap_or(0);
+    if bytes.get(trimmed) == Some(&b'{') {
+        return "application/json";
+    }
+    "application/octet-stream"
+}

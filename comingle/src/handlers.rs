@@ -2,6 +2,8 @@ use crate::app_state::AppState;
 use crate::tiles3d;
 use crate::utils::*;
 use anyhow::Result;
+use axum::http::{HeaderMap, HeaderValue, header};
+use axum::response::IntoResponse;
 use axum::{Json, extract::Path, extract::State, http::StatusCode};
 use iri_string::types::{UriAbsoluteStr, UriReferenceStr};
 use serde::Deserialize;
@@ -116,7 +118,7 @@ pub struct GetContentPayloadPaths {
 pub async fn get_content_payload(
     State(app_state): State<AppState>,
     Path(paths): Path<GetContentPayloadPaths>,
-) -> Result<axum::body::Bytes, StatusCode> {
+) -> Result<impl IntoResponse, StatusCode> {
     let layer_def = app_state
         .get_layer_definition(&paths.id)
         .await
@@ -138,7 +140,11 @@ pub async fn get_content_payload(
     // TODO: If the payload is a tileset, we need to (temporarily, until CesiumJS is fixed), strip the tileset metadata and schema.
     // Or maybe just add the schema to the toplevel schema for terrain in the tileset. That's probably best.
 
-    Ok(bytes)
+    let content_type = sniff_content_type(&bytes);
+    let mut headers = HeaderMap::new();
+    headers.insert(header::CONTENT_TYPE, HeaderValue::from_static(content_type));
+
+    Ok((headers, bytes))
 }
 
 #[derive(Deserialize)]
@@ -150,7 +156,7 @@ pub struct GetBaseGlobeTerrainPayloadPaths {
 pub async fn get_base_globe_terrain_payload(
     State(app_state): State<AppState>,
     Path(paths): Path<GetBaseGlobeTerrainPayloadPaths>,
-) -> Result<axum::body::Bytes, StatusCode> {
+) -> Result<impl IntoResponse, StatusCode> {
     let layer_def = app_state
         .get_layer_definition(&paths.id)
         .await
@@ -172,5 +178,9 @@ pub async fn get_base_globe_terrain_payload(
         .await
         .map_err(|_| StatusCode::NOT_FOUND)?; // TODO: distinguish 404 vs 500
 
-    Ok(bytes)
+    let content_type = sniff_content_type(&bytes);
+    let mut headers = HeaderMap::new();
+    headers.insert(header::CONTENT_TYPE, HeaderValue::from_static(content_type));
+
+    Ok((headers, bytes))
 }
