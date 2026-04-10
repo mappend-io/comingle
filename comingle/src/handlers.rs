@@ -45,7 +45,7 @@ pub struct GetChildTilesetPaths {
     pub face: u8,
     pub level: i32,
     pub col: i32,
-    pub row: i32,
+    pub row: String,
 }
 
 pub async fn get_child_tileset(
@@ -63,11 +63,18 @@ pub async fn get_child_tileset(
     // If it's >=, we want to get the tile from the appropriate tileset.
     // For now, we synthesize all tilesets
 
+    let row: i32 = paths
+        .row
+        .strip_suffix(".json")
+        .ok_or(StatusCode::NOT_FOUND)?
+        .parse()
+        .map_err(|_| StatusCode::NOT_FOUND)?;
+
     let layer_def = app_state
         .get_layer_definition(&paths.id)
         .await
         .map_err(|_| StatusCode::NOT_FOUND)?;
-    let tileset = layer_def.synthesize_tileset(paths.face, paths.level, paths.col, paths.row);
+    let tileset = layer_def.synthesize_tileset(paths.face, paths.level, paths.col, row);
     Ok(Json(tileset))
 }
 

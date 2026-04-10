@@ -57,21 +57,18 @@ async fn main() -> Result<()> {
         .route("/{id}", get(get_root_tileset))
         .route_layer(from_fn(cache_short))
         // These routes are immutable, we depend on the id/hash of config to bust cache
-        .route("/{id}/{hash}/tileset", get(get_root_tileset_top_node))
+        .route("/{id}/{hash}/tileset.json", get(get_root_tileset_top_node))
         .route(
-            "/{id}/{hash}/tileset/{face}/{level}/{col}/{row}",
+            "/{id}/{hash}/t/{face}/{level}/{col}/{row}",
             get(get_child_tileset),
         )
         .route(
-            "/{id}/{hash}/content/{token}/top",
+            "/{id}/{hash}/c/{token}/tileset.json",
             get(get_content_toplevel),
         )
+        .route("/{id}/{hash}/c/{token}/{*rest}", get(get_content_payload))
         .route(
-            "/{id}/{hash}/content/{token}/{*rest}",
-            get(get_content_payload),
-        )
-        .route(
-            "/{id}/{hash}/bg_content/{*rest}",
+            "/{id}/{hash}/bgc/{*rest}",
             get(get_base_globe_terrain_payload),
         )
         .route_layer(from_fn(cache_forever))

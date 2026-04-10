@@ -75,7 +75,7 @@ impl LayerDefinition {
                 children: vec![],
                 content: Some(Content {
                     bounding_volume: None,
-                    uri: format!("{}/{}/tileset", self.id, self.hash()),
+                    uri: format!("{}/{}/tileset.json", self.id, self.hash()),
                     root_property: RootProperty::default(),
                 }),
                 refine: Some(tiles3d::RefineMode::Replace),
@@ -111,7 +111,7 @@ impl LayerDefinition {
                 geometric_error: self.geometric_error_for_level(0) * 64.0,
                 children: vec![],
                 content: Some(tiles3d::Content {
-                    uri: format!("tileset/{}/{}/{}/{}", face, 0, 0, 0),
+                    uri: format!("t/{}/{}/{}/{}.json", face, 0, 0, 0),
                     bounding_volume: None,
                     root_property: RootProperty::default(),
                 }),
@@ -152,7 +152,7 @@ impl LayerDefinition {
         if level < self.source_s2_content_level {
             if self.base_globe_terrain_uri.is_some() {
                 content = Some(tiles3d::Content {
-                    uri: format!("../../../../bg_content/{face}/{level}/{col}/{row}.glb",),
+                    uri: format!("../../../../bgc/{face}/{level}/{col}/{row}.glb",),
                     bounding_volume: None,
                     root_property: RootProperty::default(),
                 });
@@ -175,7 +175,7 @@ impl LayerDefinition {
                     children: vec![],
                     content: Some(Content {
                         bounding_volume: None,
-                        uri: format!("../../{child_level}/{child_col}/{child_row}"),
+                        uri: format!("../../{child_level}/{child_col}/{child_row}.json"),
                         root_property: RootProperty::default(),
                     }),
                     geometric_error: self.geometric_error_for_level(child_level),
@@ -186,7 +186,7 @@ impl LayerDefinition {
             }
         } else if level == self.source_s2_content_level {
             content = Some(tiles3d::Content {
-                uri: format!("../../../../content/{content_token}/top"),
+                uri: format!("../../../../c/{content_token}/tileset.json"),
                 bounding_volume: None,
                 root_property: RootProperty::default(),
             });
