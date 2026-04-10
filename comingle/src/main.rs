@@ -10,6 +10,7 @@ use resource_io::{ResourceLoader, ResourceLoaderConfig};
 use std::sync::Arc;
 use tokio::net::TcpListener;
 use tower_http::cors::{Any, CorsLayer};
+use tower_http::trace::TraceLayer;
 use tracing::info;
 
 pub mod app_state;
@@ -92,6 +93,8 @@ async fn main() -> Result<()> {
                 .allow_headers(Any),
         ),
     };
+
+    let app = app.layer(TraceLayer::new_for_http());
 
     info!("🚀 Listening on {}", app_state.config.listen_addr);
 
