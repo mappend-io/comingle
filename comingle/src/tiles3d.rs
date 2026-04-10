@@ -62,6 +62,13 @@ impl Default for Asset {
     }
 }
 
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "UPPERCASE")]
+pub enum RefineMode {
+    Replace,
+    Add,
+}
+
 // https://docs.ogc.org/cs/22-025r4/22-025r4.html#toc132
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -69,7 +76,8 @@ pub struct Tile {
     pub bounding_volume: BoundingVolume,
     // Option viewer_request_volume
     pub geometric_error: f64,
-    // Option refine
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub refine: Option<RefineMode>,
     // Option transform
 
     // TODO: Option content OR contents

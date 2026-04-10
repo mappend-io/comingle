@@ -78,6 +78,7 @@ impl LayerDefinition {
                     uri: format!("{}/{}/tileset", self.id, self.hash()),
                     root_property: RootProperty::default(),
                 }),
+                refine: Some(tiles3d::RefineMode::Replace),
                 root_property: RootProperty::default(),
             },
             root_property: self.tileset_root_property.clone(),
@@ -114,6 +115,7 @@ impl LayerDefinition {
                     bounding_volume: None,
                     root_property: RootProperty::default(),
                 }),
+                refine: None,
                 root_property: RootProperty::default(),
             };
             children.push(child);
@@ -130,6 +132,7 @@ impl LayerDefinition {
                 geometric_error: self.geometric_error_for_level(0) * 128.0,
                 children,
                 content: None,
+                refine: None,
                 root_property: RootProperty::default(),
             },
         }
@@ -176,6 +179,7 @@ impl LayerDefinition {
                         root_property: RootProperty::default(),
                     }),
                     geometric_error: self.geometric_error_for_level(child_level),
+                    refine: None,
                     root_property: RootProperty::default(),
                 };
                 children.push(child);
@@ -193,6 +197,7 @@ impl LayerDefinition {
             children,
             content,
             geometric_error: self.geometric_error_for_level(level),
+            refine: None,
             root_property: RootProperty::default(),
         };
 
