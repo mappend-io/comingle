@@ -43,4 +43,34 @@ impl AppState {
             .map_err(|e| anyhow::anyhow!(e))
             .context("Could not fetch layer definition")
     }
+
+    pub async fn get_layer_definitions(&self) -> Result<Vec<Arc<LayerDefinition>>> {
+        let root_uri = UriAbsoluteStr::new(&self.config.layer_config_uri)?;
+
+        let layer_ids: Vec<String> = self
+            .resource_loader
+            .list_items_nonrecursive_async(root_uri)
+            .await?
+            .into_iter()
+            .filter(|item| item.ends_with(".json"))
+            .filter_map(|item| {
+                std::path::Path::new(&item)
+                    .file_stem()
+                    .and_then(|s| s.to_str())
+                    .map(|s| s.to_string())
+            })
+            .collect();
+
+        let tasks: Vec<_> = layer_ids
+            .into_iter()
+            .map(|id| {
+                let this = self.clone();
+                async move { this.get_layer_definition(&id).await }
+            })
+            .collect();
+
+        let results = futures::future::join_all(tasks).await;
+        let definitions: Result<Vec<Arc<LayerDefinition>>> = results.into_iter().collect();
+        definitions
+    }
 }

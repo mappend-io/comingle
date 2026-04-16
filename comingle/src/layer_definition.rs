@@ -29,6 +29,7 @@ pub struct LayerDefinition {
     pub version: i32,
     #[serde(default)]
     pub base_globe_terrain_uri: Option<String>,
+    pub asset_id: i64,
 }
 
 impl LayerDefinition {

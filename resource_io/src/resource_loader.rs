@@ -273,4 +273,50 @@ impl ResourceLoader {
             }
         })
     }
+
+    pub async fn list_items_nonrecursive_async(
+        &self,
+        uri: &UriAbsoluteStr,
+    ) -> Result<Vec<String>, Error> {
+        match uri.scheme_str() {
+            "file" => {
+                let path = uri.path_str();
+                let mut entries = tokio::fs::read_dir(path).await?;
+                let mut items = vec![];
+                while let Some(entry) = entries.next_entry().await? {
+                    let path = entry.path();
+                    if let Some(file_name) = path.file_name() {
+                        items.push(file_name.to_string_lossy().to_string());
+                    }
+                }
+                Ok(items)
+            }
+            "s3" => {
+                let bucket = uri.authority_str().unwrap().to_string();
+                let prefix = uri.path_str().trim_start_matches('/').to_string();
+
+                let res = self
+                    .s3_client
+                    .list_objects_v2()
+                    .bucket(bucket)
+                    .prefix(prefix)
+                    .send()
+                    .await
+                    .map_err(|e| Error::S3(e.to_string()))?;
+
+                let mut items = vec![];
+                for obj in res.contents() {
+                    if let Some(key) = obj.key() {
+                        let stem = key.split('/').last().unwrap_or("");
+                        if !stem.is_empty() {
+                            items.push(stem.to_string());
+                        }
+                    }
+                }
+
+                Ok(items)
+            }
+            _ => Err(Error::BadUri("Unsupported uri scheme".to_string())),
+        }
+    }
 }

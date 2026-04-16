@@ -857,6 +857,7 @@ dependencies = [
  "bytesize",
  "clap",
  "dotenvy",
+ "futures",
  "humantime",
  "iref",
  "iri-string",

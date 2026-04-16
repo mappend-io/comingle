@@ -4,7 +4,11 @@ use crate::handlers::*;
 use crate::middleware::*;
 use anyhow::{Context, Result};
 use axum::middleware::from_fn;
-use axum::{Router, http::HeaderValue, routing::get};
+use axum::{
+    Router,
+    http::HeaderValue,
+    routing::{get, post},
+};
 use moka::future::Cache;
 use resource_io::{ResourceLoader, ResourceLoaderConfig};
 use std::sync::Arc;
@@ -15,6 +19,7 @@ use tracing::info;
 
 pub mod app_state;
 pub mod config;
+pub mod emulation;
 pub mod handlers;
 pub mod layer_definition;
 pub mod logging;
@@ -52,11 +57,25 @@ async fn main() -> Result<()> {
         layer_definition_cache: Arc::new(layer_definition_cache),
     };
 
-    let app = Router::new()
-        // These routes expire quickly, in case the config is updated
+    let compat_routes = Router::new()
+        .route("/appData", get(emulation::app_data))
+        .route("/oauth", get(emulation::oauth))
+        .route("/oauth/token", post(emulation::oauth_token))
+        .route("/v2/tokens", get(emulation::list_tokens))
+        .route("/v1/defaults", get(emulation::get_defaults))
+        .route("/v1/me", get(emulation::me))
+        .route("/v1/assets", get(emulation::list_assets))
+        .route("/v1/assets/{id}", get(emulation::get_asset))
+        .route(
+            "/v1/assets/{id}/endpoint",
+            get(emulation::get_asset_endpoint),
+        );
+
+    let short_cache_routes = Router::new()
         .route("/{id}", get(get_root_tileset))
-        .route_layer(from_fn(cache_short))
-        // These routes are immutable, we depend on the id/hash of config to bust cache
+        .route_layer(from_fn(cache_short));
+
+    let long_cache_routes = Router::new()
         .route("/{id}/{hash}/tileset.json", get(get_root_tileset_top_node))
         .route(
             "/{id}/{hash}/t/{face}/{level}/{col}/{row}",
@@ -71,7 +90,12 @@ async fn main() -> Result<()> {
             "/{id}/{hash}/bgc/{*rest}",
             get(get_base_globe_terrain_payload),
         )
-        .route_layer(from_fn(cache_forever))
+        .route_layer(from_fn(cache_forever));
+
+    let app = Router::new()
+        .merge(compat_routes)
+        .merge(short_cache_routes)
+        .merge(long_cache_routes)
         .fallback(viewer::static_handler)
         .with_state(app_state.clone());
 

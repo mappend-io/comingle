@@ -14,6 +14,7 @@ bytes = "1.11.1"
 bytesize = "2.3.1"
 clap = { version = "4.6.0", features = ["derive", "env"] }
 dotenvy = "0.15.7"
+futures = "0.3.32"
 humantime = "2.3.0"
 iref = "4.0.0"
 iri-string = "0.7.12"

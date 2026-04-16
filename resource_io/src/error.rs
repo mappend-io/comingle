@@ -16,4 +16,6 @@ pub enum Error {
     BadArchive(String),
     #[error("Decompression error: {0}")]
     Decompression(String),
+    #[error("S3 error: {0}")]
+    S3(String),
 }
