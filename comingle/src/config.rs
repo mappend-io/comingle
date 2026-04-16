@@ -18,6 +18,10 @@ pub struct Config {
     #[arg(long, env = "LISTEN_ADDR", default_value = "0.0.0.0:3200")]
     pub listen_addr: String,
 
+    /// Public base url
+    #[arg(long, env = "BASE_URL")]
+    pub base_url: String,
+
     /// Allow CORS from a specific origin, or "*" for any
     #[arg(long, env = "CORS_ORIGIN")]
     pub cors_origin: Option<String>,

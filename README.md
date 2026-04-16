@@ -25,6 +25,8 @@ Options:
           Use pretty logging instead of JSON [env: PRETTY_LOG=true]
       --listen-addr <LISTEN_ADDR>
           Listen address [env: LISTEN_ADDR=] [default: 0.0.0.0:3200]
+      --base-url <BASE_URL>
+          Public base url [env: BASE_URL=]
       --cors-origin <CORS_ORIGIN>
           Allow CORS from a specific origin, or "*" for any [env: CORS_ORIGIN=*]
       --layer-config-uri <LAYER_CONFIG_URI>
