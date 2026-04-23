@@ -12,6 +12,7 @@ consumers, and includes a bundled CesiumJS viewer for quick inspection.
 - Run `comingle --layer-config-uri file:///path/to/layers/`
 - Open `http://localhost:3200/?layers=my-layer,my-other-layer` to use the [bundled viewer](#Bundled-viewer)
 - OR point CesiumJS, Cesium Native or other 3D Tiles consumers to `http://localhost:3200/my-layer`
+- Open `http://localhost:3200/layers` to discover layers and endpoints
 
 ## Command line reference
 
@@ -133,6 +134,7 @@ locate source content. To accomplish this, several key elements are necessary:
   content.
 - `tilesetExtensionsRequired`: Set to `["MAXAR_content_geojson"]` if exposing a
   vector dataset, otherwise leave it as an empty array
+- `description`: An optional string to include in the layer list.
 
 The remaining fields can be set as described in the sample below and are
 reserved for future use.
@@ -141,6 +143,7 @@ A sample layer definition:
 
 ```json
 {
+    "description": "A sample terrain layer",
     "sourceUriContentTemplate": "s3://bucket/prefix/{CONTENT_ROOT_TOKEN}/terrain.3tz",
     "sourceS2ContentLevel": 7,
     "sourceS2ContentCoverageTokens": ["1", "3", "5", "7", "9", "b"],

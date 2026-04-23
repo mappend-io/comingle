@@ -5,8 +5,51 @@ use anyhow::Result;
 use axum::http::{HeaderMap, HeaderValue, header};
 use axum::response::IntoResponse;
 use axum::{Json, extract::Path, extract::State, http::StatusCode};
-use iri_string::types::{UriAbsoluteStr, UriReferenceStr};
-use serde::Deserialize;
+use iri_string::types::{UriAbsoluteStr, UriReferenceStr, UriRelativeStr};
+use serde::{Deserialize, Serialize};
+
+#[derive(Serialize)]
+pub struct LayerItem {
+    id: String,
+    description: String,
+    endpoint: String,
+}
+
+#[derive(Serialize)]
+pub struct ListLayerItems {
+    items: Vec<LayerItem>,
+}
+
+pub async fn get_layers(
+    State(app_state): State<AppState>,
+) -> Result<Json<ListLayerItems>, StatusCode> {
+    let layers = app_state
+        .get_layer_definitions()
+        .await
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+    let base_uri = UriAbsoluteStr::new(&app_state.config.base_url)
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+    println!("{:?}", layers);
+
+    let mut items: Vec<LayerItem> = layers
+        .iter()
+        .map(|layer| -> Result<LayerItem, StatusCode> {
+            let uri = UriRelativeStr::new(&layer.id)
+                .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
+                .resolve_against(base_uri)
+                .to_string();
+            Ok(LayerItem {
+                id: layer.id.clone(),
+                description: layer.description.clone().unwrap_or("".to_string()),
+                endpoint: uri,
+            })
+        })
+        .collect::<Result<Vec<LayerItem>, StatusCode>>()?;
+    items.sort_by(|a, b| a.id.cmp(&b.id));
+    Ok(Json(ListLayerItems { items }))
+}
 
 pub async fn get_root_tileset(
     State(app_state): State<AppState>,

@@ -73,6 +73,7 @@ async fn main() -> Result<()> {
 
     let short_cache_routes = Router::new()
         .route("/{id}", get(get_root_tileset))
+        .route("/layers", get(get_layers))
         .route_layer(from_fn(cache_short));
 
     let long_cache_routes = Router::new()

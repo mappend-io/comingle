@@ -30,6 +30,8 @@ pub struct LayerDefinition {
     #[serde(default)]
     pub base_globe_terrain_uri: Option<String>,
     pub asset_id: i64,
+    #[serde(default)]
+    pub description: Option<String>,
 }
 
 impl LayerDefinition {
