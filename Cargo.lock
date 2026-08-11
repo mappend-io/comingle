@@ -1642,7 +1642,7 @@ dependencies = [
 
 [[package]]
 name = "gltf_arc"
-version = "0.1.0"
+version = "0.0.0-dev"
 dependencies = [
  "anyhow",
  "bytemuck",
@@ -1662,7 +1662,7 @@ dependencies = [
 
 [[package]]
 name = "gltf_io"
-version = "0.1.0"
+version = "0.0.0-dev"
 dependencies = [
  "anyhow",
  "bytes",
@@ -1675,7 +1675,7 @@ dependencies = [
 
 [[package]]
 name = "gltf_types"
-version = "0.1.0"
+version = "0.0.0-dev"
 dependencies = [
  "anyhow",
  "bytes",
@@ -2772,7 +2772,7 @@ dependencies = [
 
 [[package]]
 name = "porter"
-version = "0.1.0"
+version = "0.0.0-dev"
 dependencies = [
  "anyhow",
  "async-recursion",
@@ -3108,7 +3108,7 @@ checksum = "dc897dd8d9e8bd1ed8cdad82b5966c3e0ecae09fb1907d58efaa013543185d0a"
 
 [[package]]
 name = "resource_io"
-version = "0.1.0"
+version = "0.0.0-dev"
 dependencies = [
  "async-trait",
  "aws-config",
@@ -3792,7 +3792,7 @@ checksum = "7b2093cf4c8eb1e67749a6762251bc9cd836b6fc171623bd0a9d324d37af2417"
 
 [[package]]
 name = "terrarium"
-version = "0.1.0"
+version = "0.0.0-dev"
 dependencies = [
  "anyhow",
  "bytemuck",
@@ -4131,7 +4131,7 @@ dependencies = [
 
 [[package]]
 name = "transforms"
-version = "0.1.0"
+version = "0.0.0-dev"
 dependencies = [
  "anyhow",
  "bytes",

@@ -3,7 +3,7 @@ resolver = "3"
 members = ["porter", "gltf_io", "gltf_arc", "gltf_types", "resource_io", "transforms", "terrarium"]
 
 [workspace.package]
-version = "0.1.0"
+version = "0.0.0-dev"
 edition = "2024"
 authors = ["Richard Moreland <richard@mappend.com>"]
 license = "MIT"
